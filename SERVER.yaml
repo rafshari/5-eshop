@@ -1,0 +1,77 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eshop-server
+spec:
+  selector:
+    matchLabels:
+      app: eshop-server
+  template:
+    metadata:
+      labels:
+        app: eshop-server
+    spec:
+      containers:
+      - name: eshop-server
+        image: rafshari/eshop_server:v1.0.5
+        resources:
+          limits:
+            memory: 100M
+            ephemeral-storage: 0.1G
+            cpu: 100m
+          requests:
+            memory: 100M
+            ephemeral-storage: 0.1G
+            cpu: 100m
+        ports:
+        - containerPort: 5000
+          name: apiport
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eshop-server
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+    name: apiport
+  selector:
+    app: eshop-server
+  type: ClusterIP
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route 
+metadata: 
+  name: eshop-route-server
+  namespace: eshop
+spec:
+  host: eshopserver-eshop.apps.ir-thr-ba1.arvan.run
+  port: 
+    targetPort: apiport
+  tls: 
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge 
+  to: 
+    kind: service 
+    name: eshop-server
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: imagespvc
+spec:
+  resources:
+    requests:
+      storage: 1G
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+
+
+
